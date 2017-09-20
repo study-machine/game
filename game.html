@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    #myCanvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+<canvas id="myCanvas"></canvas>
+</body>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script>
+
+
+    function Paddle() {
+        var o = {
+            img: imageFromPath('img/ball/paddle.png'),
+            x: 200,
+            y: 400,
+            speed: 5,
+            leftDown: false,
+            rightDown: false
+        }
+        o.actions = {
+            moveLeft: function () {
+                if (o.leftDown)
+                    o.x -= o.speed
+            },
+            moveRight: function () {
+                if (o.rightDown)
+                    o.x += o.speed
+            }
+        }
+
+        return o
+
+    }
+
+    function Ball() {
+        var o = {
+            img: imageFromPath('img/ball/ball.png'),
+            x: 200,
+            y: 400,
+            speedX: 10,
+            speedY: 10,
+        }
+        o.actions = {
+            move: function () {
+                if (o.x < 0 || o.x > config.canvasWidth - o.img.width)
+                    o.speedX = -o.speedX
+                if (o.y < 0 || o.y > config.canvasHeight - o.img.height)
+                    o.speedY = -o.speedY
+                o.x += o.speedX
+                o.y += o.speedY
+            }
+        }
+
+        return o
+
+    }
+
+
+    function Game() {
+        var g = {
+            imgObjs: []
+        }
+        var canvas = document.querySelector('#myCanvas')
+        var context = canvas.getContext('2d')
+        g.canvas = canvas
+        g.context = context
+        g.canvas.width = 500
+        g.canvas.height = 600
+
+        g.registerAction = function (eventName, key, callback) {
+            window.addEventListener(eventName, function (event) {
+                if (event.key === key) {
+                    callback()
+                }
+            })
+        }
+
+        g.update = function () {
+            for (var i of g.imgObjs) {
+                var actions = Object.values(i.actions)
+                for (var a of actions) {
+                    a()
+                }
+
+            }
+
+        }
+        g.draw = function () {
+            g.context.clearRect(0, 0, canvas.width, canvas.height)
+            for (var i of g.imgObjs) {
+                g.context.drawImage(i.img, i.x, i.y)
+            }
+        }
+
+
+        setInterval(function () {
+            g.update()
+
+            g.draw()
+        }, 1000 / 60)
+        return g
+    }
+
+
+    function main() {
+        var g = Game()
+        var paddle = Paddle()
+        var ball = Ball()
+        g.imgObjs.push(paddle)
+        g.imgObjs.push(ball)
+
+        g.registerAction('keydown', 'a', function () {
+            paddle.leftDown = true
+        })
+
+        g.registerAction('keydown', 'd', function () {
+            paddle.rightDown = true
+        })
+        g.registerAction('keyup', 'a', function () {
+            paddle.leftDown = false
+        })
+
+        g.registerAction('keyup', 'd', function () {
+            paddle.rightDown = false
+        })
+
+    }
+
+    main()
+</script>
+</html>
